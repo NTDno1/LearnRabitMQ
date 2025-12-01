@@ -13,8 +13,8 @@ var factory = new ConnectionFactory
 using var connection = await factory.CreateConnectionAsync();
 using var channel = await connection.CreateChannelAsync();
 
-await channel.QueueDeclareAsync(queue: "hello", durable: false, exclusive: false, autoDelete: false,
-    arguments: null);
+// await channel.QueueDeclareAsync(queue: "hello", durable: false, exclusive: false, autoDelete: false,
+//     arguments: null);
 
 Console.WriteLine(" [*] Waiting for messages.");
 
@@ -27,7 +27,7 @@ consumer.ReceivedAsync += (model, ea) =>
     return Task.CompletedTask;
 };
 
-await channel.BasicConsumeAsync("hello1", autoAck: true, consumer: consumer);
+await channel.BasicConsumeAsync("hello2", autoAck: true, consumer: consumer);
 
 Console.WriteLine(" Press [enter] to exit.");
 Console.ReadLine();

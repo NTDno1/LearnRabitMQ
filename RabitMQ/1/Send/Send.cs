@@ -14,11 +14,18 @@ using var channel = await connection.CreateChannelAsync();
 // await channel.QueueDeclareAsync(queue: "hello1", durable: false, exclusive: false, autoDelete: false,
 //     arguments: null);
 
-const string message = "13";
-var body = Encoding.UTF8.GetBytes(message);
+Console.WriteLine("Type a message and press [Enter] to send. Press [Enter] on an empty line to exit.");
 
-await channel.BasicPublishAsync(exchange: string.Empty, routingKey: "hello2", body: body);
-Console.WriteLine($" [x] Sent {message}");
+while (true)
+{
+    Console.Write("Input message: ");
+    var message = Console.ReadLine();
 
-Console.WriteLine(" Press [enter] to exit.");
-Console.ReadLine();
+    if (string.IsNullOrEmpty(message))
+        break;
+
+    var body = Encoding.UTF8.GetBytes(message);
+
+    await channel.BasicPublishAsync(exchange: string.Empty, routingKey: "hello1", body: body);
+    Console.WriteLine($" [x] Sent {message}");
+}
