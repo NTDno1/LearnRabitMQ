@@ -97,7 +97,7 @@ pipeline {
                     docker rm -f signalr-backend || true
                     docker rm -f signalr-frontend || true
                     docker run -d --restart always -p 8888:8080 --name signalr-backend ${BACKEND_IMAGE}:latest
-                    docker run -d --restart always -p 9999:80 --name signalr-frontend ${FRONTEND_IMAGE}:latest
+                    docker run -d --restart always -p 9998:80 --name signalr-frontend ${FRONTEND_IMAGE}:latest
                 """
             }
         }

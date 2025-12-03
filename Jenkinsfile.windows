@@ -82,7 +82,7 @@ pipeline {
                     docker rm -f signalr-backend 2>NUL || echo ignore
                     docker rm -f signalr-frontend 2>NUL || echo ignore
                     docker run -d --restart always -p 8888:8080 --name signalr-backend ${BACKEND_IMAGE}:${IMAGE_TAG}
-                    docker run -d --restart always -p 9999:80 --name signalr-frontend ${FRONTEND_IMAGE}:${IMAGE_TAG}
+                    docker run -d --restart always -p 9998:80 --name signalr-frontend ${FRONTEND_IMAGE}:${IMAGE_TAG}
                 """
             }
         }
