@@ -21,7 +21,7 @@ export class SignalRService {
    */
   public startConnection(): Promise<void> {
     // URL của SignalR Hub (thay đổi nếu backend chạy ở port khác)
-    const hubUrl = 'http://localhost:5000/notificationHub';
+    const hubUrl = 'http://localhost:8888/notificationHub';
 
     // Tạo Hub Connection
     this.hubConnection = new signalR.HubConnectionBuilder()
