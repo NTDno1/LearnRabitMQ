@@ -12,9 +12,8 @@ pipeline {
     environment {
         BACKEND_DIR = "SignalR_net_angular/Backend"
         FRONTEND_DIR = "SignalR_net_angular/Frontend"
-        BACKEND_IMAGE = "ntdno1/signalr-backend"
-        FRONTEND_IMAGE = "ntdno1/signalr-frontend"
-        DOCKERHUB_CREDENTIALS = "docker-hub" // Jenkins credential ID
+        BACKEND_IMAGE = "signalr-backend-local"
+        FRONTEND_IMAGE = "signalr-frontend-local"
     }
 
     stages {
@@ -77,39 +76,13 @@ pipeline {
             }
         }
 
-        stage('Docker • Push images') {
-            when {
-                branch 'main'
-            }
-            steps {
-                withCredentials([usernamePassword(credentialsId: "${DOCKERHUB_CREDENTIALS}", usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PASS')]) {
-                    bat """
-                        echo ${DOCKER_PASS} | docker login -u ${DOCKER_USER} --password-stdin
-                        docker tag ${BACKEND_IMAGE}:${IMAGE_TAG} ${BACKEND_IMAGE}:latest
-                        docker tag ${FRONTEND_IMAGE}:${IMAGE_TAG} ${FRONTEND_IMAGE}:latest
-                        docker push ${BACKEND_IMAGE}:${IMAGE_TAG}
-                        docker push ${BACKEND_IMAGE}:latest
-                        docker push ${FRONTEND_IMAGE}:${IMAGE_TAG}
-                        docker push ${FRONTEND_IMAGE}:latest
-                        docker logout
-                    """
-                }
-            }
-        }
-
         stage('Deploy to server') {
-            when {
-                allOf {
-                    branch 'main'
-                    expression { return env.DEPLOY_ENABLED?.toBoolean() ?: true }
-                }
-            }
             steps {
                 bat """
                     docker rm -f signalr-backend 2>NUL || echo ignore
                     docker rm -f signalr-frontend 2>NUL || echo ignore
-                    docker run -d --restart always -p 5000:8080 --name signalr-backend ${BACKEND_IMAGE}:latest
-                    docker run -d --restart always -p 4200:80 --name signalr-frontend ${FRONTEND_IMAGE}:latest
+                    docker run -d --restart always -p 5000:8080 --name signalr-backend ${BACKEND_IMAGE}:${IMAGE_TAG}
+                    docker run -d --restart always -p 4200:80 --name signalr-frontend ${FRONTEND_IMAGE}:${IMAGE_TAG}
                 """
             }
         }
