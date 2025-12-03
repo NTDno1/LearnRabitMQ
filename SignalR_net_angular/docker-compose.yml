@@ -8,7 +8,7 @@ services:
       context: ./Backend
       dockerfile: Dockerfile
     ports:
-      - "5000:8080"
+      - "8888:8080"
     restart: always
     environment:
       - ASPNETCORE_ENVIRONMENT=Development
@@ -20,7 +20,7 @@ services:
       context: ./Frontend
       dockerfile: Dockerfile
     ports:
-      - "4200:80"
+      - "9999:80"
     restart: always
     depends_on:
       - backend

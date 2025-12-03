@@ -5,11 +5,11 @@ pipeline {
         // Configuration
         IMAGE_BACKEND = "ntdno1/signalr-backend"
         CONTAINER_BACKEND = "signalr-backend"
-        PORT_BACKEND = "5000"
+        PORT_BACKEND = "8888"
         
         IMAGE_FRONTEND = "ntdno1/signalr-frontend"
         CONTAINER_FRONTEND = "signalr-frontend"
-        PORT_FRONTEND = "4200"
+        PORT_FRONTEND = "9999"
     }
 
     stages {
@@ -52,11 +52,11 @@ pipeline {
                     sh "docker rm -f ${CONTAINER_FRONTEND} || true"
                     
                     // 2. Run Backend
-                    // Map 5000:8080 (Container uses 8080 by default for .NET 8)
+                    // Map 8888:8080 (Container uses 8080 by default for .NET 8)
                     sh "docker run -d --restart always -p ${PORT_BACKEND}:8080 --name ${CONTAINER_BACKEND} ${IMAGE_BACKEND}:latest"
                     
                     // 3. Run Frontend
-                    // Map 4200:80 (Nginx uses 80)
+                    // Map 9999:80 (Nginx uses 80)
                     // Link to backend is not strictly necessary if using localhost from browser, 
                     // but if SSR or internal calls, might need --link. 
                     // For SPA, browser calls backend directly via public URL.
