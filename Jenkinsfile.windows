@@ -3,7 +3,7 @@ pipeline {
 
     options {
         skipDefaultCheckout(true)
-        ansiColor('xterm')
+        // ansiColor('xterm')
         timestamps()
         buildDiscarder(logRotator(numToKeepStr: '15'))
         disableConcurrentBuilds()
