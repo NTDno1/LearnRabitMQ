@@ -1,0 +1,68 @@
+pipeline {
+    agent any
+    
+    environment {
+        // Configuration
+        IMAGE_BACKEND = "ntdno1/signalr-backend"
+        CONTAINER_BACKEND = "signalr-backend"
+        PORT_BACKEND = "5000"
+        
+        IMAGE_FRONTEND = "ntdno1/signalr-frontend"
+        CONTAINER_FRONTEND = "signalr-frontend"
+        PORT_FRONTEND = "4200"
+    }
+
+    stages {
+        stage('Checkout') {
+            steps {
+                git branch: 'main', url: 'https://github.com/ntdno1/LearnRabitMQ.git'
+            }
+        }
+
+        stage('Build Backend') {
+            steps {
+                script {
+                   echo "🔨 Building Backend..."
+                   // Build context is SignalR_net_angular/Backend
+                   sh "docker build -t ${IMAGE_BACKEND}:latest -f SignalR_net_angular/Backend/Dockerfile SignalR_net_angular/Backend/"
+                }
+            }
+        }
+
+        stage('Build Frontend') {
+            steps {
+                script {
+                   echo "🔨 Building Frontend..."
+                   // Build context is SignalR_net_angular/Frontend
+                   sh "docker build -t ${IMAGE_FRONTEND}:latest -f SignalR_net_angular/Frontend/Dockerfile SignalR_net_angular/Frontend/"
+                }
+            }
+        }
+
+        stage('Deploy') {
+            when {
+                branch 'main'
+            }
+            steps {
+                script {
+                    echo "🚀 Deploying Applications..."
+                    
+                    // 1. Stop and remove old containers
+                    sh "docker rm -f ${CONTAINER_BACKEND} || true"
+                    sh "docker rm -f ${CONTAINER_FRONTEND} || true"
+                    
+                    // 2. Run Backend
+                    // Map 5000:8080 (Container uses 8080 by default for .NET 8)
+                    sh "docker run -d --restart always -p ${PORT_BACKEND}:8080 --name ${CONTAINER_BACKEND} ${IMAGE_BACKEND}:latest"
+                    
+                    // 3. Run Frontend
+                    // Map 4200:80 (Nginx uses 80)
+                    // Link to backend is not strictly necessary if using localhost from browser, 
+                    // but if SSR or internal calls, might need --link. 
+                    // For SPA, browser calls backend directly via public URL.
+                    sh "docker run -d --restart always -p ${PORT_FRONTEND}:80 --name ${CONTAINER_FRONTEND} ${IMAGE_FRONTEND}:latest"
+                }
+            }
+        }
+    }
+}

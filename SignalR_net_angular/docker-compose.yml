@@ -1,0 +1,26 @@
+version: '3.8'
+
+services:
+  backend:
+    image: ntdno1/signalr-backend:latest
+    container_name: signalr-backend
+    build:
+      context: ./Backend
+      dockerfile: Dockerfile
+    ports:
+      - "5000:8080"
+    restart: always
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+
+  frontend:
+    image: ntdno1/signalr-frontend:latest
+    container_name: signalr-frontend
+    build:
+      context: ./Frontend
+      dockerfile: Dockerfile
+    ports:
+      - "4200:80"
+    restart: always
+    depends_on:
+      - backend
