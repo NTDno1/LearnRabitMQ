@@ -1,0 +1,100 @@
+pipeline {
+    agent any
+
+    options {
+        skipDefaultCheckout(true)
+        timestamps()
+        buildDiscarder(logRotator(numToKeepStr: '15'))
+        disableConcurrentBuilds()
+    }
+
+    environment {
+        BACKEND_DIR = "SignalR_net_angular/Backend"
+        FRONTEND_DIR = "SignalR_net_angular/Frontend"
+        
+        # File bạn muốn giữ (không bị ghi đè)
+        CONFIG_LOCAL = "/var/lib/jenkins/config_local/signalr.service.ts"
+        CONFIG_REPO_PATH = "SignalR_net_angular/Frontend/src/app/services/signalr.service.ts"
+
+        BACKEND_IMAGE = "ntdno1/signalr-backend"
+        FRONTEND_IMAGE = "ntdno1/signalr-frontend"
+    }
+
+    stages {
+
+        stage('Checkout') {
+            steps {
+                script {
+                    // Checkout nhưng KHÔNG ghi đè file local
+                    checkout([
+                        $class: 'GitSCM',
+                        branches: [[name: '*/develop']],
+                        userRemoteConfigs: [[url: 'https://github.com/ntdno1/LearnRabitMQ.git']],
+                        extensions: [
+                            [$class: 'SparseCheckoutPaths', sparseCheckoutPaths: [
+                                // File này sẽ được bỏ qua (không overwrite)
+                                [path: "."] 
+                            ]],
+                            [$class: 'CheckoutOption', timeout: 15]
+                        ]
+                    ])
+
+                    // Restore file config từ bản backup
+                    sh """
+                        echo "[INFO] Restoring local config file..."
+                        cp ${CONFIG_LOCAL} ${CONFIG_REPO_PATH}
+                    """
+
+                    // Gắn lại tag
+                    env.GIT_COMMIT_SHORT = sh(script: "git rev-parse --short HEAD", returnStdout: true).trim()
+                    env.IMAGE_TAG = "develop-${GIT_COMMIT_SHORT}-${env.BUILD_NUMBER}"
+                }
+            }
+        }
+
+        stage('Backend • Restore & Build') {
+            steps {
+                dir("${BACKEND_DIR}") {
+                    sh "dotnet restore"
+                    sh "dotnet build --configuration Release --no-restore"
+                    sh "dotnet publish --configuration Release --no-restore -o publish"
+                }
+            }
+        }
+
+        stage('Frontend • Install & Build') {
+            steps {
+                dir("${FRONTEND_DIR}") {
+                    sh "npm ci"
+                    sh "npm run build -- --configuration production"
+                }
+            }
+        }
+
+        stage('Docker • Build & Run containers') {
+            steps {
+                sh """
+                    docker rm -f signalr-backend-dev || true
+                    docker rm -f signalr-frontend-dev || true
+
+                    docker build -t ${BACKEND_IMAGE}:${IMAGE_TAG} -f ${BACKEND_DIR}/Dockerfile ${BACKEND_DIR}
+                    docker build -t ${FRONTEND_IMAGE}:${IMAGE_TAG} -f ${FRONTEND_DIR}/Dockerfile ${FRONTEND_DIR}
+
+                    docker run -d --restart always -p 8889:8080 --name signalr-backend-dev ${BACKEND_IMAGE}:${IMAGE_TAG}
+                    docker run -d --restart always -p 9999:80 --name signalr-frontend-dev ${FRONTEND_IMAGE}:${IMAGE_TAG}
+
+                    docker image prune -f || true
+                """
+            }
+        }
+    }
+
+    post {
+        success {
+            echo "Build OK!"
+        }
+        failure {
+            echo "Build failed."
+        }
+    }
+}
