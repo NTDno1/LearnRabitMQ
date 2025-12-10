@@ -1,0 +1,127 @@
+<div class="chat-container">
+  <!-- Sidebar -->
+  <div class="sidebar">
+    <div class="sidebar-header">
+      <div class="user-info">
+        <h3>{{ currentUser?.displayName || currentUser?.username }}</h3>
+        <span class="user-status">Đang hoạt động</span>
+      </div>
+      <button class="btn-icon" (click)="logout()" title="Đăng xuất">
+        🚪
+      </button>
+    </div>
+
+    <div class="search-bar">
+      <input
+        type="text"
+        placeholder="Tìm kiếm người dùng..."
+        [(ngModel)]="searchQuery"
+        (input)="onSearchChange()"
+        (focus)="showUserList = true">
+    </div>
+
+    <!-- User List (khi search) -->
+    <div *ngIf="showUserList && searchQuery" class="user-list">
+      <div
+        *ngFor="let user of users"
+        class="user-item"
+        (click)="startChatWithUser(user)">
+        <div class="user-avatar">{{ getDisplayName(user).charAt(0).toUpperCase() }}</div>
+        <div class="user-details">
+          <div class="user-name">{{ getDisplayName(user) }}</div>
+          <div class="user-status-text">
+            <span [class.online]="user.isOnline" [class.offline]="!user.isOnline">
+              {{ user.isOnline ? 'Đang hoạt động' : 'Offline' }}
+            </span>
+          </div>
+        </div>
+      </div>
+      <div *ngIf="users.length === 0" class="empty-state">
+        Không tìm thấy người dùng
+      </div>
+    </div>
+
+    <!-- Conversations List -->
+    <div *ngIf="!showUserList || !searchQuery" class="conversations-list">
+      <div
+        *ngFor="let conv of conversations"
+        class="conversation-item"
+        [class.active]="selectedConversation?.id === conv.id"
+        (click)="selectConversation(conv)">
+        <div class="conversation-avatar">
+          {{ getDisplayName(conv).charAt(0).toUpperCase() }}
+          <span *ngIf="conv.otherIsOnline" class="online-indicator"></span>
+        </div>
+        <div class="conversation-details">
+          <div class="conversation-header">
+            <span class="conversation-name">{{ getDisplayName(conv) }}</span>
+            <span class="conversation-time">{{ formatTime(conv.lastMessageAt) }}</span>
+          </div>
+          <div class="conversation-preview">
+            <span *ngIf="conv.lastMessage">{{ conv.lastMessage.content }}</span>
+            <span *ngIf="!conv.lastMessage">Chưa có tin nhắn</span>
+            <span *ngIf="conv.unreadCount > 0" class="unread-badge">{{ conv.unreadCount }}</span>
+          </div>
+        </div>
+      </div>
+      <div *ngIf="conversations.length === 0" class="empty-state">
+        Chưa có cuộc trò chuyện nào
+      </div>
+    </div>
+  </div>
+
+  <!-- Chat Area -->
+  <div class="chat-area">
+    <div *ngIf="!selectedConversation" class="no-conversation">
+      <h2>💬 Chọn một cuộc trò chuyện để bắt đầu</h2>
+      <p>Hoặc tìm kiếm người dùng để bắt đầu chat mới</p>
+    </div>
+
+    <div *ngIf="selectedConversation" class="chat-window">
+      <!-- Chat Header -->
+      <div class="chat-header">
+        <div class="chat-user-info">
+          <div class="chat-avatar">
+            {{ getDisplayName(selectedConversation).charAt(0).toUpperCase() }}
+            <span *ngIf="selectedConversation.otherIsOnline" class="online-indicator"></span>
+          </div>
+          <div>
+            <div class="chat-user-name">{{ getDisplayName(selectedConversation) }}</div>
+            <div class="chat-user-status">
+              {{ selectedConversation.otherIsOnline ? 'Đang hoạt động' : 'Offline' }}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Messages -->
+      <div class="messages-container">
+        <div *ngIf="isLoading" class="loading">Đang tải tin nhắn...</div>
+        <div
+          *ngFor="let message of messages"
+          class="message"
+          [class.sent]="message.senderId === currentUser?.userId"
+          [class.received]="message.senderId !== currentUser?.userId">
+          <div class="message-content">
+            <div class="message-text">{{ message.content }}</div>
+            <div class="message-time">{{ formatTime(message.sentAt) }}</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Message Input -->
+      <div class="message-input-container">
+        <input
+          type="text"
+          class="message-input"
+          placeholder="Nhập tin nhắn..."
+          [(ngModel)]="newMessage"
+          (keydown.enter)="sendMessage()">
+        <button class="send-button" (click)="sendMessage()" [disabled]="!newMessage.trim()">
+          Gửi
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+

@@ -1,0 +1,73 @@
+<div class="login-container">
+  <div class="login-card">
+    <h1>{{ isLoginMode ? 'Đăng nhập' : 'Đăng ký' }}</h1>
+    
+    <div *ngIf="errorMessage" class="error-message">
+      {{ errorMessage }}
+    </div>
+
+    <form (ngSubmit)="onSubmit()" #loginForm="ngForm">
+      <div class="form-group">
+        <label for="username">Tên đăng nhập *</label>
+        <input
+          type="text"
+          id="username"
+          name="username"
+          [(ngModel)]="username"
+          required
+          placeholder="Nhập username"
+          [disabled]="isLoading">
+      </div>
+
+      <div class="form-group" *ngIf="!isLoginMode">
+        <label for="email">Email *</label>
+        <input
+          type="email"
+          id="email"
+          name="email"
+          [(ngModel)]="email"
+          required
+          placeholder="Nhập email"
+          [disabled]="isLoading">
+      </div>
+
+      <div class="form-group">
+        <label for="password">Mật khẩu *</label>
+        <input
+          type="password"
+          id="password"
+          name="password"
+          [(ngModel)]="password"
+          required
+          placeholder="Nhập mật khẩu"
+          [disabled]="isLoading">
+      </div>
+
+      <div class="form-group" *ngIf="!isLoginMode">
+        <label for="displayName">Tên hiển thị</label>
+        <input
+          type="text"
+          id="displayName"
+          name="displayName"
+          [(ngModel)]="displayName"
+          placeholder="Tên hiển thị (tùy chọn)"
+          [disabled]="isLoading">
+      </div>
+
+      <button
+        type="submit"
+        class="btn btn-primary btn-block"
+        [disabled]="isLoading || !loginForm.valid">
+        {{ isLoading ? 'Đang xử lý...' : (isLoginMode ? 'Đăng nhập' : 'Đăng ký') }}
+      </button>
+    </form>
+
+    <div class="toggle-mode">
+      <span>{{ isLoginMode ? 'Chưa có tài khoản?' : 'Đã có tài khoản?' }}</span>
+      <button type="button" class="btn-link" (click)="toggleMode()" [disabled]="isLoading">
+        {{ isLoginMode ? 'Đăng ký ngay' : 'Đăng nhập' }}
+      </button>
+    </div>
+  </div>
+</div>
+

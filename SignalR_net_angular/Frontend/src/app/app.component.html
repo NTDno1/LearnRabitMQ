@@ -1,52 +1,5 @@
-<div class="container">
-  <!-- Header -->
-  <div class="header">
-    <h1>{{ title }}</h1>
-    <div style="display: flex; justify-content: space-between; align-items: center;">
-      <div>
-        <span class="status-badge status-{{ connectionStatus }}">
-          {{ getStatusText() }}
-        </span>
-      </div>
-      <div>
-        <button 
-          class="btn btn-primary" 
-          (click)="connect()"
-          [disabled]="connectionStatus === 'connected' || connectionStatus === 'connecting'">
-          Kết nối
-        </button>
-        <button 
-          class="btn btn-primary" 
-          (click)="disconnect()"
-          [disabled]="connectionStatus === 'disconnected'"
-          style="margin-left: 10px;">
-          Ngắt kết nối
-        </button>
-        <button 
-          class="btn btn-primary" 
-          (click)="clearNotifications()"
-          style="margin-left: 10px; background-color: #ef4444;">
-          Xóa tất cả
-        </button>
-      </div>
-    </div>
-  </div>
-
-  <!-- Notifications List -->
-  <div *ngIf="notifications.length === 0" class="empty-state">
-    <h2>📭 Chưa có thông báo</h2>
-    <p>Thông báo sẽ xuất hiện ở đây khi có tin nhắn từ RabbitMQ</p>
-  </div>
-
-  <div *ngFor="let notification of notifications" class="notification-card">
-    <div class="notification-header">
-      <span class="notification-time">
-        {{ notification.timestamp | date:'dd/MM/yyyy HH:mm:ss' }}
-      </span>
-    </div>
-    <div class="notification-content">
-      {{ notification.message }}
-    </div>
-  </div>
+<div class="app-container">
+  <app-login *ngIf="!authService.isAuthenticated()"></app-login>
+  <app-chat *ngIf="authService.isAuthenticated()"></app-chat>
 </div>
 

@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
 import * as signalR from '@microsoft/signalr';
 import { Subject, BehaviorSubject } from 'rxjs';
+import { environment } from '../../environments/environment';
 
 @Injectable({
   providedIn: 'root'
@@ -21,7 +22,7 @@ export class SignalRService {
    */
   public startConnection(): Promise<void> {
     // URL của SignalR Hub (thay đổi nếu backend chạy ở port khác)
-    const hubUrl = 'http://localhost:8888/notificationHub';
+    const hubUrl = environment.notificationHubUrl;
 
     // Tạo Hub Connection
     this.hubConnection = new signalR.HubConnectionBuilder()
