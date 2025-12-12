@@ -13,6 +13,7 @@ public class ApplicationDbContext : DbContext
     public DbSet<User> Users { get; set; }
     public DbSet<Conversation> Conversations { get; set; }
     public DbSet<Message> Messages { get; set; }
+    public DbSet<Item> Items { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -64,6 +65,15 @@ public class ApplicationDbContext : DbContext
                   .OnDelete(DeleteBehavior.Restrict);
             entity.HasIndex(e => e.ConversationId);
             entity.HasIndex(e => e.SentAt);
+        });
+
+        // Item (CRUD sample) configuration
+        modelBuilder.Entity<Item>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.Name).IsRequired().HasMaxLength(200);
+            entity.Property(e => e.Description).HasMaxLength(1000);
+            entity.Property(e => e.CreatedAt).IsRequired();
         });
     }
 }
