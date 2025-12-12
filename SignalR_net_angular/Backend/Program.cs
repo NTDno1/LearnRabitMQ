@@ -2,6 +2,7 @@ using Backend.Data;
 using Backend.Hubs;
 using Backend.Services;
 using Microsoft.EntityFrameworkCore;
+using MongoDB.Driver;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -44,6 +45,15 @@ builder.Services.AddDbContext<ApplicationDbContext>(options =>
 // Đăng ký Services
 builder.Services.AddScoped<AuthService>();
 builder.Services.AddScoped<MessageService>();
+
+// MongoDB
+builder.Services.Configure<MongoChatOptions>(builder.Configuration.GetSection("MongoDb"));
+builder.Services.AddSingleton<IMongoClient>(sp =>
+{
+    var opt = sp.GetRequiredService<Microsoft.Extensions.Options.IOptions<MongoChatOptions>>().Value;
+    return new MongoClient(opt.ConnectionString);
+});
+builder.Services.AddSingleton<MongoChatService>();
 
 // Cấu hình CORS để Angular có thể kết nối
 builder.Services.AddCors(options =>

@@ -18,6 +18,13 @@ export class ChatComponent implements OnInit, OnDestroy {
   selectedConversation: ConversationDto | null = null;
   messages: MessageDto[] = [];
   newMessage = '';
+
+  // Mongo view (riêng)
+  mongoSelectedUser: UserDto | null = null;
+  mongoMessages: MessageDto[] = [];
+  mongoNewMessage = '';
+  mongoLoading = false;
+
   searchQuery = '';
   showUserList = false;
   isLoading = false;
@@ -63,6 +70,17 @@ export class ChatComponent implements OnInit, OnDestroy {
       this.loadConversations();
     });
 
+    // Tin nhắn do chính mình gửi (SQL/SignalR) -> hiển thị ngay
+    this.chatService.messageSent$.subscribe(message => {
+      if (this.selectedConversation &&
+          (message.receiverId === this.selectedConversation.otherUserId || message.senderId === this.selectedConversation.otherUserId)) {
+        if (!this.existsMessage(this.messages, message)) {
+          this.messages.push(message);
+          this.scrollToBottom();
+        }
+      }
+    });
+
     // User online/offline
     this.chatService.userOnline$.subscribe(userId => {
       const user = this.users.find(u => u.id === userId);
@@ -75,6 +93,28 @@ export class ChatComponent implements OnInit, OnDestroy {
       const user = this.users.find(u => u.id === userId);
       if (user) {
         user.isOnline = false;
+      }
+    });
+
+    // Mongo realtime: nhận tin nhắn vào Mongo view
+    this.chatService.mongoMessageReceived$.subscribe(message => {
+      if (this.mongoSelectedUser &&
+          (message.senderId === this.mongoSelectedUser.id || message.receiverId === this.mongoSelectedUser.id)) {
+        if (!this.existsMessage(this.mongoMessages, message)) {
+          this.mongoMessages.push(message);
+        }
+        this.scrollToBottomMongo();
+      }
+    });
+
+    // Mongo realtime: xác nhận tin do chính mình gửi
+    this.chatService.mongoMessageSent$.subscribe(message => {
+      if (this.mongoSelectedUser &&
+          (message.receiverId === this.mongoSelectedUser.id || message.senderId === this.mongoSelectedUser.id)) {
+        if (!this.existsMessage(this.mongoMessages, message)) {
+          this.mongoMessages.push(message);
+        }
+        this.scrollToBottomMongo();
       }
     });
   }
@@ -210,6 +250,58 @@ export class ChatComponent implements OnInit, OnDestroy {
         messagesContainer.scrollTop = messagesContainer.scrollHeight;
       }
     }, 100);
+  }
+
+  private scrollToBottomMongo(): void {
+    setTimeout(() => {
+      const container = document.querySelector('.mongo-chat-box .messages-container');
+      if (container) {
+        container.scrollTop = container.scrollHeight;
+      }
+    }, 100);
+  }
+
+  // -------- Mongo Chat (view riêng, không dùng SignalR) --------
+  async selectMongoUser(user: UserDto): Promise<void> {
+    this.mongoSelectedUser = user;
+    this.mongoLoading = true;
+    try {
+      const response = await this.chatService.getMongoConversation(user.id).toPromise();
+      if (response?.success) {
+        this.mongoMessages = response.data;
+      }
+    } catch (error) {
+      console.error('Lỗi load lịch sử Mongo:', error);
+    } finally {
+      this.mongoLoading = false;
+    }
+  }
+
+  async sendMongoMessage(): Promise<void> {
+    if (!this.mongoNewMessage.trim() || !this.mongoSelectedUser) return;
+    const content = this.mongoNewMessage.trim();
+    this.mongoNewMessage = '';
+    try {
+      await this.chatService.sendMessageMongo(
+        this.mongoSelectedUser.id,
+        content
+      ).toPromise();
+      // Tin nhắn sẽ được đẩy về qua SignalR (MongoMessageSent)
+    } catch (error) {
+      console.error('Lỗi gửi tin nhắn Mongo:', error);
+      alert('Không thể gửi tin nhắn Mongo. Vui lòng thử lại.');
+    }
+  }
+
+  private existsMessage(list: MessageDto[], message: MessageDto): boolean {
+    return list.some(m =>
+      m.id !== 0 && m.id === message.id ||
+      (m.id === 0 && message.id === 0 &&
+       m.senderId === message.senderId &&
+       m.receiverId === message.receiverId &&
+       m.content === message.content &&
+       new Date(m.sentAt).getTime() === new Date(message.sentAt).getTime())
+    );
   }
 }
 

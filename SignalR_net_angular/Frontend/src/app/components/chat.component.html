@@ -123,5 +123,68 @@
       </div>
     </div>
   </div>
+
+  <!-- Mongo Chat Area (View riêng) -->
+  <div class="chat-area mongo-panel">
+    <div class="chat-window">
+      <div class="chat-header">
+        <div>
+          <h3>Chat MongoDB</h3>
+          <div class="chat-user-status">Tin nhắn lưu trực tiếp Mongo (không qua SignalR)</div>
+        </div>
+      </div>
+
+      <div class="mongo-body">
+        <div class="mongo-users">
+          <h4>Chọn người để chat (Mongo)</h4>
+          <div class="mongo-user-list">
+            <div
+              *ngFor="let user of users"
+              class="mongo-user-item"
+              [class.active]="mongoSelectedUser?.id === user.id"
+              (click)="selectMongoUser(user)">
+              <div class="user-avatar">{{ getDisplayName(user).charAt(0).toUpperCase() }}</div>
+              <div class="user-details">
+                <div class="user-name">{{ getDisplayName(user) }}</div>
+                <div class="user-status-text">
+                  <span [class.online]="user.isOnline" [class.offline]="!user.isOnline">
+                    {{ user.isOnline ? 'Đang hoạt động' : 'Offline' }}
+                  </span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="mongo-chat-box">
+          <div class="messages-container">
+            <div *ngIf="mongoLoading" class="loading">Đang tải tin nhắn (Mongo)...</div>
+            <div
+              *ngFor="let message of mongoMessages"
+              class="message"
+              [class.sent]="message.senderId === currentUser?.userId"
+              [class.received]="message.senderId !== currentUser?.userId">
+              <div class="message-content">
+                <div class="message-text">{{ message.content }}</div>
+                <div class="message-time">{{ formatTime(message.sentAt) }}</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="message-input-container">
+            <input
+              type="text"
+              class="message-input"
+              placeholder="Nhập tin nhắn (Mongo)..."
+              [(ngModel)]="mongoNewMessage"
+              (keydown.enter)="sendMongoMessage()">
+            <button class="send-button" (click)="sendMongoMessage()" [disabled]="!mongoNewMessage.trim() || !mongoSelectedUser">
+              Gửi Mongo
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
 </div>
 

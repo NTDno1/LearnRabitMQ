@@ -458,3 +458,86 @@ SignalR sẽ tự động kết nối lại nếu mất kết nối.
 
 **Chúc bạn hiểu rõ flow real-time! 🚀**
 
+---
+
+# 📘 Luồng chạy ứng dụng nhắn tin (tổng thể)
+
+## 1. Cấu hình & cổng dịch vụ
+- Backend (.NET 8) chạy tại: `https://localhost:5001`
+  - API base: `https://localhost:5001/api`
+  - NotificationHub: `https://localhost:5001/notificationHub`
+  - ChatHub: `https://localhost:5001/chatHub`
+- Frontend (Angular) chạy `ng serve` (port do CLI chọn nếu 4200 bận); FE gọi API/Hubs qua các URL trên (đã cấu hình trong `src/environments/environment*.ts`).
+- PostgreSQL: kết nối trong `Backend/appsettings.json` (DB `signalr_db`).
+
+## 2. Xác thực (Auth)
+- FE gọi:
+  - `POST /api/Auth/register` (đăng ký)
+  - `POST /api/Auth/login` (đăng nhập)
+- Backend trả token dạng `userId:username:timestamp`. FE lưu vào `localStorage` và gắn vào:
+  - Header: `Authorization: Bearer <token>` cho mọi API
+  - Query: `?token=<token>` khi kết nối SignalR.
+- Swagger đã có nút **Authorize** (Bearer) để nhập token và thử API.
+
+## 3. Trạng thái UI
+- Nếu chưa đăng nhập → `LoginComponent`.
+- Nếu đã đăng nhập → `ChatComponent`.
+
+## 4. Kết nối SignalR
+- `ChatService` kết nối `ChatHub` kèm token → nhận/gửi chat real-time.
+- `SignalRService` kết nối `NotificationHub` (luồng thông báo RabbitMQ, tùy chọn).
+
+## 5. Danh sách người dùng & cuộc trò chuyện
+- `GET /api/Messages/users?search=...` → danh sách user để chọn chat.
+- `GET /api/Messages/conversations` → danh sách cuộc trò chuyện, last message, unread count.
+- Backend `MessagesController` lấy userId từ token → `MessageService` truy vấn DB (Users, Conversations, Messages).
+
+## 6. Gửi/nhận tin nhắn real-time
+- FE → SignalR: `ChatHub.SendMessage(receiverId, content)`.
+- Backend `ChatHub`:
+  - Xác thực token → lấy senderId.
+  - Lưu DB (`MessageService.SendMessageAsync`), cập nhật conversation.
+  - Phát:
+    - Tới receiver (group `user_{receiverId}`): event `ReceiveMessage`.
+    - Tới sender: event `MessageSent`.
+- Nếu SignalR lỗi, FE fallback `POST /api/Messages/send`.
+
+## 7. Đánh dấu đã đọc
+- FE gọi `ChatHub.MarkAsRead(messageId)` hoặc `POST /api/Messages/read/{messageId}`.
+- Backend cập nhật DB, gửi `MessageRead` cho sender (nếu online).
+
+## 8. Trạng thái online/offline
+- `ChatHub` map `userId → connectionId`.
+- `OnConnected`: add group `user_{id}`, broadcast `UserOnline`.
+- `OnDisconnected`: broadcast `UserOffline`.
+- FE cập nhật trạng thái user trong danh sách.
+
+## 9. Luồng thông báo RabbitMQ (tùy chọn)
+- `TestController` gửi message vào queue `notifications`.
+- `RabbitMQConsumerService` lắng nghe queue, phát qua `NotificationHub` event `ReceiveNotification`.
+- FE `SignalRService` nhận và hiển thị (thông báo).
+
+## 10. Swagger + Bearer
+- Vào `https://localhost:5001/swagger/index.html`.
+- Bấm **Authorize**, nhập `Bearer <token>`.
+- Gọi các API bảo vệ (`/api/Messages/...`) sẽ kèm header Authorization tự động.
+
+## 11. Chạy nhanh
+### Backend
+```bash
+cd SignalR_net_angular/Backend
+dotnet restore
+dotnet run
+```
+### Frontend
+```bash
+cd SignalR_net_angular/Frontend
+npm install
+npm start   # chấp nhận đổi port nếu 4200 bận
+```
+### Kiểm thử
+1) Đăng ký/đăng nhập trên FE → token lưu localStorage.
+2) FE tự kết nối ChatHub (SignalR).
+3) Chọn user → gửi tin nhắn → người nhận thấy ngay (ReceiveMessage).
+4) Swagger: nhập Bearer token → gọi `/api/Messages/conversations`… để kiểm tra.
+

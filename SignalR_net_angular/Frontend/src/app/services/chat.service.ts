@@ -59,6 +59,13 @@ export class ChatService {
   private userOfflineSubject = new Subject<number>();
   public userOffline$ = this.userOfflineSubject.asObservable();
 
+  // Mongo realtime
+  private mongoMessageReceivedSubject = new Subject<MessageDto>();
+  public mongoMessageReceived$ = this.mongoMessageReceivedSubject.asObservable();
+
+  private mongoMessageSentSubject = new Subject<MessageDto>();
+  public mongoMessageSent$ = this.mongoMessageSentSubject.asObservable();
+
   constructor(
     private http: HttpClient,
     private authService: AuthService
@@ -120,6 +127,15 @@ export class ChatService {
       // Có thể emit event nếu cần
     });
 
+    // Mongo realtime
+    this.hubConnection.on('ReceiveMongoMessage', (message: MessageDto) => {
+      this.mongoMessageReceivedSubject.next(message);
+    });
+
+    this.hubConnection.on('MongoMessageSent', (message: MessageDto) => {
+      this.mongoMessageSentSubject.next(message);
+    });
+
     this.hubConnection.on('Error', (error: string) => {
       console.error('ChatHub error:', error);
     });
@@ -178,6 +194,16 @@ export class ChatService {
   }
 
   /**
+   * API: Lấy lịch sử chat lưu trên MongoDB
+   */
+  getMongoHistory(otherUserId: number, limit: number = 100): Observable<any> {
+    return this.http.get<any>(`${this.apiUrl}/Messages/mongo/history/${otherUserId}`, {
+      headers: this.getHeaders(),
+      params: { limit: limit.toString() }
+    });
+  }
+
+  /**
    * API: Lấy tin nhắn trong conversation
    */
   getMessages(otherUserId: number, page: number = 1, pageSize: number = 50): Observable<any> {
@@ -205,6 +231,28 @@ export class ChatService {
   markAsReadViaApi(messageId: number): Observable<any> {
     return this.http.post<any>(`${this.apiUrl}/Messages/read/${messageId}`, {}, {
       headers: this.getHeaders()
+    });
+  }
+
+  /**
+   * API: Gửi tin nhắn và lưu trực tiếp MongoDB
+   */
+  sendMessageMongo(receiverId: number, content: string): Observable<any> {
+    return this.http.post<any>(`${this.apiUrl}/Messages/mongo/send`, {
+      receiverId,
+      content
+    }, {
+      headers: this.getHeaders()
+    });
+  }
+
+  /**
+   * API: Lấy lịch sử Mongo (conversation)
+   */
+  getMongoConversation(otherUserId: number, limit: number = 100): Observable<any> {
+    return this.http.get<any>(`${this.apiUrl}/Messages/mongo/history/${otherUserId}`, {
+      headers: this.getHeaders(),
+      params: { limit: limit.toString() }
     });
   }
 }

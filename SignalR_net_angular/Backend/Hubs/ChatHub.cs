@@ -31,6 +31,11 @@ public class ChatHub : Hub
         return _serviceProvider.GetRequiredService<AuthService>();
     }
 
+    private MongoChatService GetMongoChatService()
+    {
+        return _serviceProvider.GetRequiredService<MongoChatService>();
+    }
+
     /// <summary>
     /// Khi client kết nối - xác thực và lưu connection
     /// </summary>
@@ -115,7 +120,7 @@ public class ChatHub : Hub
                 return;
             }
 
-            // Lưu message vào database
+            // Lưu message vào database (SQL)
             var messageService = GetMessageService();
             var messageDto = await messageService.SendMessageAsync(senderId, receiverId, content);
 
