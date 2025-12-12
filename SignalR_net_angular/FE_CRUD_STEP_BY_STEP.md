@@ -1,29 +1,13 @@
-# 📘 Hướng dẫn từng bước (Front-end Angular) xây dựng CRUD Items
+# 📘 Hướng dẫn tích hợp thêm view CRUD vào Frontend hiện tại (SignalR_net_angular)
 
-Mục tiêu: tự tay xây dựng giao diện CRUD (giống bảng mẫu) gọi API đã có sẵn ở Backend `/api/items`.
+Mục tiêu: thêm trang CRUD Items (API `/api/items`) trực tiếp trong dự án hiện tại, không tạo project mới.
 
 ## 0. Chuẩn bị
-- Node 18+, Angular CLI 17+.
-- Backend đang chạy ở `https://localhost:5001/api`.
-- Dùng SCSS hoặc CSS đều được; ví dụ bên dưới dùng SCSS.
+- Backend đã có `ItemsController` chạy ở `https://localhost:5001/api`.
+- Frontend hiện tại đang bootstrap `AppComponent` (standalone).
+- Cấu hình sẵn `environment.apiBaseUrl = https://localhost:5001/api`.
 
-## 1. Tạo dự án Angular
-```bash
-ng new crud-app --routing --style=scss
-cd crud-app
-npm install
-```
-
-## 2. Cấu hình environment
-`src/environments/environment.ts`
-```ts
-export const environment = {
-  production: false,
-  apiBaseUrl: 'https://localhost:5001/api'
-};
-```
-
-## 3. Tạo model
+## 1) Model & Service (trong dự án hiện tại)
 `src/app/models/item.model.ts`
 ```ts
 export interface Item {
@@ -34,14 +18,10 @@ export interface Item {
 }
 ```
 
-## 4. Tạo service gọi API
-```bash
-ng generate service services/item
-```
 `src/app/services/item.service.ts`
 ```ts
-import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { environment } from '../../environments/environment';
 import { Item } from '../models/item.model';
@@ -51,45 +31,23 @@ export class ItemService {
   private api = environment.apiBaseUrl;
   constructor(private http: HttpClient) {}
 
-  getAll(): Observable<Item[]> {
-    return this.http.get<Item[]>(`${this.api}/items`);
-  }
-  get(id: number): Observable<Item> {
-    return this.http.get<Item>(`${this.api}/items/${id}`);
-  }
-  create(payload: Partial<Item>): Observable<Item> {
-    return this.http.post<Item>(`${this.api}/items`, payload);
-  }
-  update(id: number, payload: Partial<Item>): Observable<Item> {
-    return this.http.put<Item>(`${this.api}/items/${id}`, payload);
-  }
-  delete(id: number): Observable<void> {
-    return this.http.delete<void>(`${this.api}/items/${id}`);
-  }
+  getAll(): Observable<Item[]> { return this.http.get<Item[]>(`${this.api}/items`); }
+  get(id: number): Observable<Item> { return this.http.get<Item>(`${this.api}/items/${id}`); }
+  create(payload: Partial<Item>): Observable<Item> { return this.http.post<Item>(`${this.api}/items`, payload); }
+  update(id: number, payload: Partial<Item>): Observable<Item> { return this.http.put<Item>(`${this.api}/items/${id}`, payload); }
+  delete(id: number): Observable<void> { return this.http.delete<void>(`${this.api}/items/${id}`); }
 }
 ```
 
-## 5. Cài Bootstrap để làm UI nhanh
+## 2) Tạo 3 component CRUD (standalone)
+Chạy lệnh trong thư mục Frontend:
 ```bash
-npm install bootstrap
-```
-`src/styles.scss`
-```scss
-@import "bootstrap/dist/css/bootstrap.min.css";
+ng generate component app/components/item-list --standalone --flat --skip-tests
+ng generate component app/components/item-form --standalone --flat --skip-tests
+ng generate component app/components/items-page --standalone --flat --skip-tests
 ```
 
-## 6. Tạo components
-Chúng ta dùng 3 component standalone: `ItemsPage`, `ItemList`, `ItemForm`.
-
-```bash
-ng generate component pages/items-page --standalone --flat --skip-tests
-ng generate component components/item-list --standalone --flat --skip-tests
-ng generate component components/item-form --standalone --flat --skip-tests
-```
-
-### 6.1 ItemListComponent
-Chức năng: hiển thị bảng + nút Add, Edit, Delete.
-
+### ItemListComponent
 `item-list.component.ts`
 ```ts
 import { Component, EventEmitter, Input, Output } from '@angular/core';
@@ -101,7 +59,7 @@ import { Item } from '../models/item.model';
   standalone: true,
   imports: [CommonModule],
   templateUrl: './item-list.component.html',
-  styleUrls: ['./item-list.component.scss']
+  styleUrls: ['./item-list.component.css']
 })
 export class ItemListComponent {
   @Input() items: Item[] = [];
@@ -111,11 +69,11 @@ export class ItemListComponent {
 }
 ```
 
-`item-list.component.html` (bố cục giống hình mẫu)
+`item-list.component.html`
 ```html
 <div class="d-flex justify-content-end mb-3">
   <button class="btn btn-primary" (click)="add.emit()">Add Product</button>
- </div>
+</div>
 
 <table class="table table-bordered table-hover align-middle">
   <thead class="table-light">
@@ -142,22 +100,18 @@ export class ItemListComponent {
       <td colspan="5" class="text-center text-muted">No data</td>
     </tr>
   </tbody>
- </table>
+</table>
 ```
 
-`item-list.component.scss`
-```scss
-table th, table td {
-  vertical-align: middle;
-}
+`item-list.component.css`
+```css
+table th, table td { vertical-align: middle; }
 ```
 
-### 6.2 ItemFormComponent
-Chức năng: form Add/Edit.
-
+### ItemFormComponent
 `item-form.component.ts`
 ```ts
-import { Component, EventEmitter, Input, Output, OnChanges, SimpleChanges } from '@angular/core';
+import { Component, EventEmitter, Input, OnChanges, Output, SimpleChanges } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Item } from '../models/item.model';
@@ -167,10 +121,10 @@ import { Item } from '../models/item.model';
   standalone: true,
   imports: [CommonModule, FormsModule],
   templateUrl: './item-form.component.html',
-  styleUrls: ['./item-form.component.scss']
+  styleUrls: ['./item-form.component.css']
 })
 export class ItemFormComponent implements OnChanges {
-  @Input() item?: Item;          // nếu có => edit mode
+  @Input() item?: Item;
   @Output() save = new EventEmitter<Partial<Item>>();
   @Output() cancel = new EventEmitter<void>();
 
@@ -182,7 +136,7 @@ export class ItemFormComponent implements OnChanges {
     }
   }
 
-  submit() {
+  submit(): void {
     if (!this.form.name || this.form.name.trim() === '') return;
     this.save.emit({
       name: this.form.name?.trim(),
@@ -197,45 +151,43 @@ export class ItemFormComponent implements OnChanges {
 <div class="card">
   <div class="card-body">
     <h5 class="card-title mb-3">{{ item ? 'Edit Product' : 'Add Product' }}</h5>
-
     <div class="mb-3">
       <label class="form-label">Product Name</label>
       <input class="form-control" [(ngModel)]="form.name" placeholder="Enter name">
     </div>
-
     <div class="mb-3">
       <label class="form-label">Description</label>
       <textarea class="form-control" rows="3" [(ngModel)]="form.description" placeholder="Enter description"></textarea>
     </div>
-
     <div class="d-flex gap-2">
-      <button class="btn btn-primary" (click)="submit()">
-        {{ item ? 'Update' : 'Add' }}
-      </button>
+      <button class="btn btn-primary" (click)="submit()">{{ item ? 'Update' : 'Add' }}</button>
       <button class="btn btn-secondary" type="button" (click)="cancel.emit()">Cancel</button>
     </div>
   </div>
 </div>
 ```
 
-### 6.3 ItemsPage (container)
-Chức năng: giữ state, gọi service, điều khiển list + form.
+`item-form.component.css`
+```css
+.card { box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05); }
+```
 
+### ItemsPageComponent (container)
 `items-page.component.ts`
 ```ts
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Item } from '../models/item.model';
 import { ItemService } from '../services/item.service';
-import { ItemListComponent } from '../components/item-list.component';
-import { ItemFormComponent } from '../components/item-form.component';
+import { ItemListComponent } from './item-list.component';
+import { ItemFormComponent } from './item-form.component';
 
 @Component({
   selector: 'app-items-page',
   standalone: true,
   imports: [CommonModule, ItemListComponent, ItemFormComponent],
   templateUrl: './items-page.component.html',
-  styleUrls: ['./items-page.component.scss']
+  styleUrls: ['./items-page.component.css']
 })
 export class ItemsPageComponent implements OnInit {
   items: Item[] = [];
@@ -244,10 +196,7 @@ export class ItemsPageComponent implements OnInit {
   loading = false;
 
   constructor(private itemService: ItemService) {}
-
-  ngOnInit(): void {
-    this.load();
-  }
+  ngOnInit(): void { this.load(); }
 
   load(): void {
     this.loading = true;
@@ -256,55 +205,36 @@ export class ItemsPageComponent implements OnInit {
       error: () => { this.loading = false; }
     });
   }
-
-  onAddClick(): void {
-    this.selected = null;
-    this.showForm = true;
-  }
-
-  onEdit(item: Item): void {
-    this.selected = item;
-    this.showForm = true;
-  }
-
+  onAddClick(): void { this.selected = null; this.showForm = true; }
+  onEdit(item: Item): void { this.selected = item; this.showForm = true; }
   onRemove(item: Item): void {
     if (!confirm('Delete this item?')) return;
     this.itemService.delete(item.id).subscribe(() => {
       this.items = this.items.filter(x => x.id !== item.id);
     });
   }
-
   onSave(payload: Partial<Item>): void {
     if (this.selected) {
-      // update
       this.itemService.update(this.selected.id, payload).subscribe(updated => {
         this.items = this.items.map(x => x.id === updated.id ? updated : x);
         this.resetForm();
       });
     } else {
-      // create
       this.itemService.create(payload).subscribe(created => {
         this.items = [created, ...this.items];
         this.resetForm();
       });
     }
   }
-
-  onCancel(): void {
-    this.resetForm();
-  }
-
-  private resetForm(): void {
-    this.selected = null;
-    this.showForm = false;
-  }
+  onCancel(): void { this.resetForm(); }
+  private resetForm(): void { this.selected = null; this.showForm = false; }
 }
 ```
 
 `items-page.component.html`
 ```html
 <div class="container py-4">
-  <h2 class="mb-4">CRUD Operations in Angular</h2>
+  <h2 class="mb-4">CRUD Operations</h2>
 
   <app-item-list
     [items]="items"
@@ -323,58 +253,89 @@ export class ItemsPageComponent implements OnInit {
 </div>
 ```
 
-## 7. Routing
-`src/app/app.routes.ts`
+`items-page.component.css`
+```css
+.container { max-width: 1100px; }
+```
+
+## 3) Thêm route mới vào app hiện tại
+Tạo (hoặc cập nhật) `src/app/app.routes.ts`:
 ```ts
 import { Routes } from '@angular/router';
-import { ItemsPageComponent } from './pages/items-page.component';
+import { ItemsPageComponent } from './components/items-page.component';
+import { ChatComponent } from './components/chat.component';
 
 export const routes: Routes = [
-  { path: 'items', component: ItemsPageComponent },
+  { path: 'items', component: ItemsPageComponent }, // view CRUD mới
+  { path: 'chat', component: ChatComponent },       // view chat cũ
   { path: '', redirectTo: 'items', pathMatch: 'full' }
 ];
 ```
 
-`src/main.ts` (mặc định Angular 17 đã cấu hình, chỉ cần đảm bảo import routes):
+`src/main.ts` chỉnh để cung cấp router (giữ HttpClient):
 ```ts
 import { bootstrapApplication } from '@angular/platform-browser';
-import { provideRouter } from '@angular/router';
-import { AppComponent } from './app/app.component';
-import { routes } from './app/app.routes';
 import { provideHttpClient } from '@angular/common/http';
+import { provideRouter } from '@angular/router';
+import { routes } from './app/app.routes';
+import { AppComponent } from './app/app.component';
 
 bootstrapApplication(AppComponent, {
-  providers: [provideRouter(routes), provideHttpClient()]
-});
+  providers: [provideHttpClient(), provideRouter(routes)]
+}).catch(err => console.error(err));
 ```
 
-`src/app/app.component.ts` giữ `<router-outlet></router-outlet>` hoặc nếu vẫn dùng Login/Chat cũ thì tạo app shell mới cho CRUD.
+`src/app/app.component.ts` đổi sang dùng RouterOutlet:
+```ts
+import { Component } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { RouterOutlet } from '@angular/router';
 
-## 8. Chạy thử
-Backend (đã có sẵn):
+@Component({
+  selector: 'app-root',
+  standalone: true,
+  imports: [CommonModule, RouterOutlet],
+  templateUrl: './app.component.html',
+  styleUrl: './app.component.css'
+})
+export class AppComponent {}
+```
+
+`src/app/app.component.html` thêm điều hướng:
+```html
+<div class="app-container">
+  <nav class="p-3 border-bottom mb-3">
+    <a class="me-3" routerLink="/items">Items CRUD</a>
+    <a class="me-3" routerLink="/chat">Chat</a>
+  </nav>
+  <router-outlet></router-outlet>
+</div>
+```
+> Nếu muốn giữ logic đăng nhập cho Chat, có thể ẩn link Chat khi chưa login hoặc thêm guard.
+
+## 4) Chạy thử
+Backend:
 ```bash
 cd SignalR_net_angular/Backend
 dotnet run
 ```
 Frontend:
 ```bash
-cd crud-app
+cd SignalR_net_angular/Frontend
 npm install
 ng serve
 ```
-Mở `http://localhost:4200/items` → Thêm / Sửa / Xóa → kiểm tra Network gọi `https://localhost:5001/api/items`.
+Mở `http://localhost:4200/items` → Thêm/Sửa/Xóa; kiểm tra Network gọi `https://localhost:5001/api/items`.
 
-## 9. Giải thích luồng FE (tóm tắt)
-- `ItemsPageComponent` giữ state, gọi `ItemService`.
-- `ItemListComponent` chỉ render bảng và emit sự kiện Add/Edit/Delete.
-- `ItemFormComponent` hiển thị form, emit `save(payload)` và `cancel()`.
-- Dòng chảy: 
-  - `Add` → `showForm = true` → submit → `ItemService.create()` → prepend vào `items`.
-  - `Edit` → set `selected` → form patch → submit → `ItemService.update()` → replace item trong `items`.
-  - `Delete` → confirm → `ItemService.delete()` → filter item khỏi `items`.
+## 5) Luồng FE (tóm tắt)
+- `ItemsPageComponent` giữ state và gọi `ItemService`.
+- `ItemListComponent` render bảng, emit Add/Edit/Delete.
+- `ItemFormComponent` render form, emit Save/Cancel.
+- Add: showForm=true → create → prepend item.
+- Edit: set selected → update → replace item.
+- Delete: confirm → delete → filter item.
 
-## 10. Lưu ý
-- Nếu CORS: đảm bảo BE đã bật CORS cho FE (trong BE Program.cs đã có policy `AllowAngular`).
-- SSL: FE gọi `https://localhost:5001`; nếu gặp lỗi cert dev, chạy FE với `--ssl false` hoặc trust cert dev của .NET.
-- Phân trang: ví dụ trên là client-side đơn giản; nếu muốn server-side, thêm query `page/pageSize` và cập nhật API.
+## 6) Lưu ý
+- CORS: BE đã bật policy `AllowAngular`; FE gọi HTTPS 5001. Nếu lỗi cert dev, trust cert .NET hoặc dùng `--ssl false`.
+- Phân trang: hiện client-side đơn giản; muốn server-side thì thêm query `page/pageSize` ở BE/FE.
 
