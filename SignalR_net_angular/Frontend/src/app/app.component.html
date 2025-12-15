@@ -1,5 +1,7 @@
 <div class="app-container">
-  <app-login *ngIf="!authService.isAuthenticated()"></app-login>
-  <app-chat *ngIf="authService.isAuthenticated()"></app-chat>
+  <nav class="p-3 border-bottom mb-3">
+    <a class="me-3" routerLink="/items">Items CRUD</a>
+    <a class="me-3" routerLink="/chat">Chat</a>
+  </nav>
+  <router-outlet></router-outlet>
 </div>
-

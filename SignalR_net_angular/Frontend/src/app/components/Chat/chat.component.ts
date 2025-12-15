@@ -1,8 +1,9 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { ChatService, MessageDto, UserDto, ConversationDto } from '../services/chat.service';
-import { AuthService, AuthResponse } from '../services/auth.service';
+import { ChatService, MessageDto, UserDto, ConversationDto } from '../../services/chat.service';
+import { AuthService, AuthResponse } from '../../services/auth.service';
+import { Router } from '@angular/router';
 
 @Component({
   selector: 'app-chat',
@@ -31,7 +32,8 @@ export class ChatComponent implements OnInit, OnDestroy {
 
   constructor(
     private chatService: ChatService,
-    private authService: AuthService
+    private authService: AuthService,
+    private route : Router
   ) {}
 
   async ngOnInit(): Promise<void> {
@@ -217,7 +219,7 @@ export class ChatComponent implements OnInit, OnDestroy {
 
   logout(): void {
     this.authService.logout();
-    window.location.reload();
+    this.route.navigate(['/auth']);
   }
 
   getDisplayName(user: UserDto | ConversationDto): string {

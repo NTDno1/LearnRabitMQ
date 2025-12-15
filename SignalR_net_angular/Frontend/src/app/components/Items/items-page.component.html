@@ -1,0 +1,19 @@
+<div class="container py-4">
+    <h2 class="mb-4">CRUD Operations</h2>
+  
+    <app-item-list
+      [items]="items"
+      (add)="onAddClick()"
+      (edit)="onEdit($event)"
+      (logout)="logout()"
+      (remove)="onRemove($event)">
+    </app-item-list>
+  
+    <div class="mt-4" *ngIf="showForm">
+      <app-item-form
+        [item]="selected"
+        (save)="onSave($event)"
+        (cancel)="onCancel()">
+      </app-item-form>
+    </div>
+  </div>

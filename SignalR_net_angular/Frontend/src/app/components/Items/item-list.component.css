@@ -1,0 +1,6 @@
+table th, table td { vertical-align: middle; }
+.head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
