@@ -1,47 +1,52 @@
-# Kiến Trúc Microservice - Backend Project
+# 🏗️ Microservice Architecture - E-Commerce Backend
 
-Dự án này triển khai một hệ thống backend theo mô hình kiến trúc Microservice sử dụng .NET 8.0, dựa trên các nguyên tắc từ giáo trình "Các Hệ Thống Phân Tán" và các best practices thực tế.
+Dự án triển khai hệ thống **E-Commerce Backend** theo kiến trúc **Microservice** sử dụng .NET 8.0, dựa trên giáo trình "Các Hệ Thống Phân Tán" và best practices thực tế.
 
-## 📖 Hướng Dẫn Chạy Dự Án
+---
 
-**👉 Xem file [HUONG_DAN_CHAY_DU_AN.md](./HUONG_DAN_CHAY_DU_AN.md) để có hướng dẫn chi tiết từng bước!**
+## 📚 Tài Liệu
 
-## 🎬 Demo và Kịch Bản
+| File | Mô Tả |
+|------|-------|
+| [TONG_QUAN_DU_AN.md](./TONG_QUAN_DU_AN.md) | Tổng quan tính năng và mục đích dự án |
+| [ARCHITECTURE.md](./ARCHITECTURE.md) | Kiến trúc chi tiết và thiết kế |
+| [HUONG_DAN_CHAY_DU_AN.md](./HUONG_DAN_CHAY_DU_AN.md) | Hướng dẫn chạy dự án từng bước |
+| [QUICKSTART.md](./QUICKSTART.md) | Hướng dẫn nhanh để bắt đầu |
+| [KICH_BAN_DEMO.md](./KICH_BAN_DEMO.md) | Kịch bản demo chi tiết |
+| [GIAI_THICH_KIEN_TRUC.md](./GIAI_THICH_KIEN_TRUC.md) | Giải thích về kiến trúc |
+| [Frontend/README.md](./Frontend/README.md) | Hướng dẫn Frontend Angular |
 
-**👉 Xem file [KICH_BAN_DEMO.md](./KICH_BAN_DEMO.md) để có kịch bản demo chi tiết!**
+---
 
-**👉 Xem file [TONG_QUAN_DU_AN.md](./TONG_QUAN_DU_AN.md) để hiểu tổng quan về dự án!**
+## 🎯 Tổng Quan Dự Án
 
-## 🎨 Frontend
+Hệ thống bao gồm **4 microservices** độc lập:
 
-**👉 Xem thư mục [Frontend](./Frontend/) để có Angular app demo!**
+- **👥 User Service** (Port 5001) - Quản lý người dùng
+- **📦 Product Service** (Port 5002) - Quản lý sản phẩm  
+- **🛒 Order Service** (Port 5003) - Quản lý đơn hàng với RabbitMQ
+- **🚪 API Gateway** (Port 5000) - Điều hướng requests (Ocelot)
 
-## 📋 Mô Tả Dự Án
-
-Hệ thống bao gồm các microservices độc lập, mỗi service quản lý một domain cụ thể:
-
-- **UserService**: Quản lý người dùng (CRUD operations)
-- **ProductService**: Quản lý sản phẩm (CRUD operations)
-- **OrderService**: Quản lý đơn hàng với tích hợp RabbitMQ cho giao tiếp bất đồng bộ
-- **ApiGateway**: Điều hướng requests đến các microservices sử dụng Ocelot
+---
 
 ## 🏗️ Kiến Trúc Hệ Thống
 
 ```
 ┌─────────────┐
-│   Client    │
-│  (Frontend) │
+│   Frontend  │
+│  (Angular)  │
+│  :4200      │
 └──────┬──────┘
        │ HTTP
        ▼
 ┌─────────────────┐
-│   API Gateway    │ (Port 5000)
+│   API Gateway    │ Port 5000
 │    (Ocelot)     │
 └────────┬────────┘
          │
     ┌────┴────┬──────────┬──────────┐
-    │        │          │          │
-    ▼        ▼          ▼          │
+    │         │          │          │
+    ▼         ▼          ▼          │
 ┌────────┐ ┌────────┐ ┌────────┐  │
 │ User   │ │Product │ │ Order  │  │
 │Service │ │Service │ │Service │  │
@@ -49,11 +54,11 @@ Hệ thống bao gồm các microservices độc lập, mỗi service quản lý
 └────┬───┘ └────┬───┘ └────┬───┘  │
      │         │          │       │
      ▼         ▼          ▼       │
-┌──────────────┐ ┌──────────────┐ │ ┌──────────────┐
-│userservice_db│ │productservice│ │ │orderservice_db│
-│ (PostgreSQL) │ │   _db       │ │ │ (PostgreSQL) │
-│              │ │ (PostgreSQL)│ │ │              │
-└──────────────┘ └──────────────┘ │ └──────────────┘
+┌──────────┐ ┌──────────┐ │ ┌──────────┐
+│userservice│ │product   │ │ │orderservice│
+│   _db    │ │service_db│ │ │   _db    │
+│PostgreSQL│ │PostgreSQL│ │ │PostgreSQL│
+└──────────┘ └──────────┘ │ └──────────┘
      │         │          │       │
      └─────────┴──────────┴───────┘
                     │
@@ -62,115 +67,48 @@ Hệ thống bao gồm các microservices độc lập, mỗi service quản lý
         ▼                       ▼
 ┌──────────────┐        ┌──────────────┐
 │   MongoDB    │        │   RabbitMQ   │
-│ (Logging/    │        │ (Message     │
-│  Events)     │        │  Queue)     │
-│              │        │              │
-│ Tất cả       │        │ Order Service│
-│ Services     │        │ sử dụng      │
-│ sử dụng      │        │              │
+│ (Logging)    │        │ (Messages)  │
 └──────────────┘        └──────────────┘
 ```
 
-**Lưu ý:** MongoDB và RabbitMQ là **infrastructure services** được các microservices sử dụng trực tiếp, không qua API Gateway.
+> **💡 Lưu ý:** MongoDB và RabbitMQ là **infrastructure services** được các microservices sử dụng trực tiếp, không qua API Gateway.
 
-## 🛠️ Công Nghệ Sử Dụng
+---
 
-- **.NET 8.0**: Framework chính
-- **Entity Framework Core**: ORM cho database operations
-- **PostgreSQL**: Database chính cho mỗi microservice (Npgsql)
-- **MongoDB**: NoSQL database cho logging và events
-- **RabbitMQ**: Message queue cho giao tiếp bất đồng bộ
-- **Ocelot**: API Gateway
-- **Docker & Docker Compose**: Containerization
-- **BCrypt.Net**: Password hashing
+## 🛠️ Công Nghệ
 
-## 📁 Cấu Trúc Dự Án
+### Backend
+- **.NET 8.0** - Framework
+- **Entity Framework Core** - ORM
+- **PostgreSQL** - Database (Npgsql)
+- **MongoDB** - Logging/Events
+- **RabbitMQ** - Message Queue
+- **Ocelot** - API Gateway
+- **Swagger** - API Documentation
 
-```
-Microservice/
-├── Microservice.Common/              # Shared libraries
-│   ├── Models/
-│   └── Interfaces/
-├── Microservice.ApiGateway/         # API Gateway
-│   ├── Controllers/
-│   └── ocelot.json
-├── Microservice.Services.UserService/    # User Microservice
-│   ├── Controllers/
-│   ├── Services/
-│   ├── Models/
-│   ├── Data/
-│   └── DTOs/
-├── Microservice.Services.ProductService/ # Product Microservice
-│   ├── Controllers/
-│   ├── Services/
-│   ├── Models/
-│   ├── Data/
-│   └── DTOs/
-├── Microservice.Services.OrderService/   # Order Microservice
-│   ├── Controllers/
-│   ├── Services/
-│   ├── Models/
-│   ├── Data/
-│   └── DTOs/
-└── docker-compose.yml
-```
+### Frontend
+- **Angular 17+** - Framework
+- **Angular Material** - UI Components
 
-## 🚀 Cài Đặt và Chạy
+---
 
-### Yêu Cầu Hệ Thống
+## 🚀 Quick Start
 
-- .NET 8.0 SDK
-- Docker Desktop (nếu chạy bằng Docker)
-- **PostgreSQL**: Đang sử dụng từ server `47.130.33.106:5432`
-- **MongoDB**: Đang sử dụng từ MongoDB Atlas
-- **RabbitMQ**: Đang sử dụng từ server `47.130.33.106:5672`
+### 1. Chạy Backend Services
 
-**Lưu ý**: Các databases đang được cấu hình để sử dụng từ server external. Nếu muốn chạy local, cần cập nhật connection strings trong `appsettings.json`.
-
-### Chạy Bằng Docker Compose (Khuyến nghị)
-
-1. Clone repository và di chuyển vào thư mục Microservice:
-```bash
+**Cách 1: Sử dụng Script (Khuyến nghị)**
+```powershell
 cd Microservice
+.\run-all-services.ps1
 ```
 
-2. Chạy toàn bộ hệ thống:
-```bash
-docker-compose up -d
-```
-
-3. Kiểm tra các services đã chạy:
-```bash
-docker-compose ps
-```
-
-4. Truy cập các endpoints:
-   - **API Gateway Swagger**: http://localhost:5000/swagger
-   - **User Service Swagger**: http://localhost:5001/swagger
-   - **Product Service Swagger**: http://localhost:5002/swagger
-   - **Order Service Swagger**: http://localhost:5003/swagger
-   - **RabbitMQ Management**: http://localhost:15672 (guest/guest)
-
-### Chạy Local (Development)
-
-**Lưu ý**: Dự án đang sử dụng PostgreSQL và MongoDB từ server external. Connection strings đã được cấu hình sẵn trong `appsettings.json`.
-
-1. **Kiểm tra kết nối đến databases**:
-   - PostgreSQL: `47.130.33.106:5432`
-   - MongoDB: MongoDB Atlas (connection string trong appsettings.json)
-   - RabbitMQ: `47.130.33.106:5672`
-
-2. **Nếu muốn chạy databases local**, cập nhật connection strings trong `appsettings.json` của mỗi service:
-   - PostgreSQL local: `Host=localhost;Port=5432;Database=...;Username=postgres;Password=...`
-   - MongoDB local: `mongodb://localhost:27017`
-
-3. Chạy từng service:
+**Cách 2: Chạy thủ công**
 ```bash
 # Terminal 1 - User Service
 cd Microservice.Services.UserService
 dotnet run
 
-# Terminal 2 - Product Service
+# Terminal 2 - Product Service  
 cd Microservice.Services.ProductService
 dotnet run
 
@@ -183,114 +121,97 @@ cd Microservice.ApiGateway
 dotnet run
 ```
 
+### 2. Chạy Frontend
+
+```bash
+cd Microservice/Frontend
+npm install
+npm start
+```
+
+### 3. Truy Cập
+
+- **Frontend:** http://localhost:4200
+- **API Gateway Swagger:** http://localhost:5000/swagger
+- **User Service Swagger:** http://localhost:5001/swagger
+- **Product Service Swagger:** http://localhost:5002/swagger
+- **Order Service Swagger:** http://localhost:5003/swagger
+
+---
+
 ## 📡 API Endpoints
 
-### User Service (qua API Gateway)
+Tất cả APIs đều truy cập qua **API Gateway** (http://localhost:5000):
 
-- `GET /api/users` - Lấy danh sách tất cả users
-- `GET /api/users/{id}` - Lấy thông tin user theo ID
+### Users
+- `GET /api/users` - Danh sách users
+- `GET /api/users/{id}` - Chi tiết user
 - `POST /api/users` - Tạo user mới
 - `PUT /api/users/{id}` - Cập nhật user
 - `DELETE /api/users/{id}` - Xóa user
 
-### Product Service (qua API Gateway)
-
-- `GET /api/products` - Lấy danh sách tất cả products
-- `GET /api/products/{id}` - Lấy thông tin product theo ID
-- `GET /api/products/category/{category}` - Lấy products theo category
+### Products
+- `GET /api/products` - Danh sách products
+- `GET /api/products/{id}` - Chi tiết product
+- `GET /api/products/category/{category}` - Lọc theo category
 - `POST /api/products` - Tạo product mới
 - `PUT /api/products/{id}` - Cập nhật product
-- `DELETE /api/products/{id}` - Xóa product
 - `PATCH /api/products/{id}/stock` - Cập nhật stock
+- `DELETE /api/products/{id}` - Xóa product
 
-### Order Service (qua API Gateway)
-
-- `GET /api/orders` - Lấy danh sách tất cả orders
-- `GET /api/orders/{id}` - Lấy thông tin order theo ID
-- `GET /api/orders/user/{userId}` - Lấy orders của user
+### Orders
+- `GET /api/orders` - Danh sách orders
+- `GET /api/orders/{id}` - Chi tiết order
+- `GET /api/orders/user/{userId}` - Orders của user
 - `POST /api/orders` - Tạo order mới
-- `PUT /api/orders/{id}/status` - Cập nhật status của order
+- `PUT /api/orders/{id}/status` - Cập nhật status
 - `DELETE /api/orders/{id}` - Xóa order
 
-## 🔄 Giao Tiếp Bất Đồng Bộ
+---
 
-OrderService sử dụng RabbitMQ để publish các events:
+## 🗄️ Database Configuration
 
-- **order.created**: Khi một order mới được tạo
-- **order.status.updated**: Khi status của order thay đổi
+### PostgreSQL
+- **Server:** 47.130.33.106:5432
+- **Username:** postgres
+- **Password:** 123456
+- **Databases:**
+  - `userservice_db`
+  - `productservice_db`
+  - `orderservice_db`
 
-Các services khác có thể subscribe vào các queues này để xử lý events.
+### MongoDB
+- **Connection:** MongoDB Atlas
+- **Databases:**
+  - `microservice_users` (User Service)
+  - `microservice_products` (Product Service)
+  - `microservice_orders` (Order Service)
 
-## 📝 Nguyên Tắc Thiết Kế
+### RabbitMQ
+- **Server:** 47.130.33.106:5672
+- **Username:** guest
+- **Password:** guest
 
-Dự án tuân theo các nguyên tắc từ giáo trình "Các Hệ Thống Phân Tán":
+---
 
-1. **Tính độc lập**: Mỗi microservice có database riêng và có thể triển khai độc lập
-2. **Gắn kết lỏng**: Các services giao tiếp qua API và message queue
-3. **Tính mô đun**: Mỗi service tập trung vào một domain cụ thể
-4. **Tính trong suốt**: API Gateway che giấu sự phức tạp của hệ thống phân tán
-5. **Khả năng mở rộng**: Dễ dàng scale từng service độc lập
+## 📋 Yêu Cầu
 
-## 🧪 Testing với Swagger UI
+- .NET 8.0 SDK
+- Node.js 18+ (cho Frontend)
+- PostgreSQL (external server)
+- MongoDB Atlas (external)
+- RabbitMQ (external server)
 
-✅ **Tất cả các services đều có Swagger UI được cấu hình và luôn được bật** (không chỉ trong Development mode):
+---
 
-- **API Gateway Swagger**: http://localhost:5000/swagger
-  - Title: API Gateway
-  - Mô tả: Điểm vào duy nhất cho tất cả các API requests
-  
-- **User Service Swagger**: http://localhost:5001/swagger
-  - Title: User Service API
-  - Mô tả: API cho quản lý người dùng
-  
-- **Product Service Swagger**: http://localhost:5002/swagger
-  - Title: Product Service API
-  - Mô tả: API cho quản lý sản phẩm
-  
-- **Order Service Swagger**: http://localhost:5003/swagger
-  - Title: Order Service API
-  - Mô tả: API cho quản lý đơn hàng với tích hợp RabbitMQ
+## 📖 Xem Thêm
 
-**Đặc điểm**:
-- Swagger UI luôn được bật ở mọi môi trường (Development, Staging, Production)
-- Mỗi service có thông tin mô tả riêng trong Swagger
-- Dễ dàng test và tương tác với APIs trực tiếp từ trình duyệt
+- **Hướng dẫn chi tiết:** [HUONG_DAN_CHAY_DU_AN.md](./HUONG_DAN_CHAY_DU_AN.md)
+- **Kịch bản demo:** [KICH_BAN_DEMO.md](./KICH_BAN_DEMO.md)
+- **Kiến trúc:** [ARCHITECTURE.md](./ARCHITECTURE.md)
 
-## 📚 Tài Liệu Tham Khảo
-
-- Giáo trình "Các Hệ Thống Phân Tán" - Học viện Công nghệ Bưu chính Viễn thông
-- [Microservices Patterns](https://microservices.io/patterns/)
-- [Ocelot Documentation](https://ocelot.readthedocs.io/)
-- [RabbitMQ Documentation](https://www.rabbitmq.com/documentation.html)
-
-## 🔧 Troubleshooting
-
-### Lỗi kết nối PostgreSQL
-- Kiểm tra PostgreSQL server `47.130.33.106:5432` có thể truy cập được không
-- Kiểm tra connection string trong appsettings.json
-- Đảm bảo database đã được tạo: `userservice_db`, `productservice_db`, `orderservice_db`
-- Kiểm tra username/password: `postgres/123456`
-
-### Lỗi kết nối MongoDB
-- Kiểm tra MongoDB connection string trong appsettings.json
-- Đảm bảo MongoDB Atlas cluster đang hoạt động
-- Kiểm tra network access trong MongoDB Atlas (whitelist IP nếu cần)
-
-### Lỗi kết nối RabbitMQ
-- Kiểm tra RabbitMQ server `47.130.33.106:5672` có thể truy cập được không
-- Kiểm tra credentials trong appsettings.json: `guest/guest`
-- Kiểm tra firewall/network rules
-
-### Lỗi API Gateway không route được
-- Kiểm tra file ocelot.json
-- Đảm bảo các services đã chạy trước khi start API Gateway
-- Kiểm tra ports trong ocelot.json khớp với ports của services
+---
 
 ## 📄 License
 
-Dự án này được tạo cho mục đích học tập và nghiên cứu.
-
-## 👥 Tác Giả
-
-Dự án được phát triển dựa trên giáo trình "Các Hệ Thống Phân Tán" và các best practices thực tế về microservices architecture.
-
+Dự án được tạo cho mục đích học tập và nghiên cứu.

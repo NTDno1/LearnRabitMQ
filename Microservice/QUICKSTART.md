@@ -1,160 +1,130 @@
-# Hướng Dẫn Nhanh - Microservice Architecture
+# ⚡ Quick Start Guide
 
-## 🚀 Khởi Động Nhanh
+Hướng dẫn nhanh để chạy dự án Microservice.
 
-### Bước 1: Kiểm tra yêu cầu
+---
 
-Đảm bảo bạn đã cài đặt:
-- Docker Desktop
-- .NET 8.0 SDK (nếu chạy local)
+## ✅ Yêu Cầu
 
-### Bước 2: Chạy bằng Docker Compose
+- .NET 8.0 SDK
+- Node.js 18+ (cho Frontend)
+- PostgreSQL server: 47.130.33.106:5432
+- RabbitMQ server: 47.130.33.106:5672
+- MongoDB Atlas (connection string trong appsettings.json)
 
-```bash
+---
+
+## 🚀 Chạy Nhanh
+
+### Bước 1: Tạo Databases
+
+Kết nối PostgreSQL và tạo 3 databases:
+
+```sql
+CREATE DATABASE userservice_db;
+CREATE DATABASE productservice_db;
+CREATE DATABASE orderservice_db;
+```
+
+### Bước 2: Chạy Backend
+
+**Cách 1: Script PowerShell (Khuyến nghị)**
+```powershell
 cd Microservice
-docker-compose up -d
+.\run-all-services.ps1
 ```
 
-Chờ vài phút để tất cả services khởi động.
+**Cách 2: Chạy thủ công**
+```bash
+# Mở 4 terminals và chạy từng service
+cd Microservice.Services.UserService && dotnet run
+cd Microservice.Services.ProductService && dotnet run
+cd Microservice.Services.OrderService && dotnet run
+cd Microservice.ApiGateway && dotnet run
+```
 
-### Bước 3: Kiểm tra services
+### Bước 3: Chạy Frontend
 
 ```bash
-# Kiểm tra trạng thái
-docker-compose ps
-
-# Xem logs
-docker-compose logs -f
+cd Microservice/Frontend
+npm install
+npm start
 ```
 
-### Bước 4: Test API với Swagger UI
+### Bước 4: Truy Cập
 
-Mở trình duyệt và truy cập Swagger UI của các services:
-- **API Gateway Swagger**: http://localhost:5000/swagger
-- **User Service Swagger**: http://localhost:5001/swagger
-- **Product Service Swagger**: http://localhost:5002/swagger
-- **Order Service Swagger**: http://localhost:5003/swagger
-- **RabbitMQ Management**: http://localhost:15672 (guest/guest)
+- **Frontend:** http://localhost:4200
+- **API Gateway:** http://localhost:5000/swagger
+- **User Service:** http://localhost:5001/swagger
+- **Product Service:** http://localhost:5002/swagger
+- **Order Service:** http://localhost:5003/swagger
 
-**Lưu ý**: 
-- ✅ Tất cả Swagger UI đều **luôn được bật** (không chỉ trong Development mode)
-- ✅ Mỗi service có thông tin mô tả riêng trong Swagger
-- ✅ Có thể test APIs trực tiếp từ Swagger UI
+---
 
-### Bước 5: Test với cURL hoặc Postman
+## 📡 Test API
 
-#### Tạo User mới:
+### Tạo User:
 ```bash
 curl -X POST http://localhost:5000/api/users \
   -H "Content-Type: application/json" \
-  -d '{
-    "username": "testuser",
-    "email": "test@example.com",
-    "password": "password123",
-    "firstName": "Test",
-    "lastName": "User"
-  }'
+  -d '{"username":"test","email":"test@example.com","password":"123","firstName":"Test","lastName":"User"}'
 ```
 
-#### Tạo Product mới:
+### Tạo Product:
 ```bash
 curl -X POST http://localhost:5000/api/products \
   -H "Content-Type: application/json" \
-  -d '{
-    "name": "Laptop",
-    "description": "High performance laptop",
-    "price": 15000000,
-    "stock": 10,
-    "category": "Electronics"
-  }'
+  -d '{"name":"Laptop","description":"High performance","price":15000000,"stock":10,"category":"Electronics"}'
 ```
 
-#### Tạo Order:
+### Tạo Order:
 ```bash
 curl -X POST http://localhost:5000/api/orders \
   -H "Content-Type: application/json" \
-  -d '{
-    "userId": 1,
-    "shippingAddress": "123 Main St, Hanoi",
-    "orderItems": [
-      {
-        "productId": 1,
-        "quantity": 2
-      }
-    ]
-  }'
+  -d '{"userId":1,"shippingAddress":"123 Main St","orderItems":[{"productId":1,"quantity":2}]}'
 ```
+
+---
 
 ## 🛑 Dừng Services
 
-```bash
-docker-compose down
+```powershell
+.\stop-all-services.ps1
 ```
 
-Để xóa cả volumes (database data):
+---
+
+## 📝 Ports
+
+| Service | Port |
+|---------|------|
+| API Gateway | 5000 |
+| User Service | 5001 |
+| Product Service | 5002 |
+| Order Service | 5003 |
+| Frontend | 4200 |
+
+---
+
+## 🔧 Troubleshooting
+
+**Lỗi kết nối PostgreSQL:**
+- Kiểm tra server 47.130.33.106:5432
+- Kiểm tra databases đã được tạo
+
+**Lỗi kết nối RabbitMQ:**
+- Kiểm tra server 47.130.33.106:5672
+- Kiểm tra credentials: guest/guest
+
+**Port đã được sử dụng:**
 ```bash
-docker-compose down -v
+netstat -ano | findstr :5001
+taskkill /PID <PID> /F
 ```
 
-## 🔍 Debugging
+---
 
-### Xem logs của một service cụ thể:
-```bash
-docker-compose logs -f user-service
-docker-compose logs -f product-service
-docker-compose logs -f order-service
-docker-compose logs -f api-gateway
-```
+## 📚 Xem Thêm
 
-### Vào trong container:
-```bash
-docker exec -it microservice-user-service bash
-```
-
-### Kiểm tra database:
-```bash
-docker exec -it microservice-sqlserver /opt/mssql-tools/bin/sqlcmd \
-  -S localhost -U sa -P YourStrong@Passw0rd \
-  -Q "SELECT name FROM sys.databases"
-```
-
-## 📝 Lưu Ý
-
-1. **Ports đã sử dụng**:
-   - 5000: API Gateway
-   - 5001: User Service
-   - 5002: Product Service
-   - 5003: Order Service
-   - 5432: PostgreSQL (external server)
-   - 5672: RabbitMQ (external server)
-   - 15672: RabbitMQ Management (nếu có)
-
-2. **Database**: Mỗi service có database riêng trong PostgreSQL:
-   - userservice_db
-   - productservice_db
-   - orderservice_db
-
-3. **RabbitMQ**: 
-   - Server: 47.130.33.106:5672
-   - Username/Password: `guest/guest`
-
-## 🐛 Troubleshooting
-
-### Service không start được
-```bash
-# Xem logs chi tiết
-docker-compose logs [service-name]
-
-# Restart service
-docker-compose restart [service-name]
-```
-
-### Database connection error
-- Kiểm tra PostgreSQL server `47.130.33.106:5432` có thể truy cập được không
-- Kiểm tra connection strings trong appsettings.json
-- Đảm bảo 3 databases đã được tạo: userservice_db, productservice_db, orderservice_db
-
-### RabbitMQ connection error
-- Kiểm tra RabbitMQ container đã chạy: `docker ps | grep rabbitmq`
-- Kiểm tra ports 5672 và 15672
-
+- **Hướng dẫn chi tiết:** [HUONG_DAN_CHAY_DU_AN.md](./HUONG_DAN_CHAY_DU_AN.md)
+- **Kịch bản demo:** [KICH_BAN_DEMO.md](./KICH_BAN_DEMO.md)

@@ -51,9 +51,7 @@
               "outputHashing": "all"
             },
             "development": {
-              "buildOptimizer": false,
               "optimization": false,
-              "vendorChunk": true,
               "extractLicenses": false,
               "sourceMap": true
             }
@@ -74,6 +72,9 @@
         }
       }
     }
+  },
+  "cli": {
+    "analytics": "2e260eaa-cc08-453e-9adf-376d69403a61"
   }
 }
 

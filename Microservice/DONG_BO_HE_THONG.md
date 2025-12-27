@@ -45,6 +45,8 @@
 | /api/products/* | Product Service | 5002 |
 | /api/orders/* | Order Service | 5003 |
 
+---
+
 ## 📁 Files Đã Được Đồng Bộ
 
 ### Configuration Files ✅
@@ -65,6 +67,8 @@
 - [x] `KICH_BAN_DEMO.md` - Kịch bản demo với đúng URLs
 - [x] `TONG_QUAN_DU_AN.md` - Tổng quan dự án
 - [x] `TONG_KET_DU_AN.md` - Tổng kết
+- [x] `GIAI_THICH_KIEN_TRUC.md` - Giải thích kiến trúc
+- [x] `THONG_TIN_DONG_BO.md` - Thông tin đồng bộ
 
 ### Frontend Files ✅
 
@@ -75,6 +79,8 @@
 
 - [x] `run-all-services.ps1` - Hiển thị đúng URLs
 - [x] `stop-all-services.ps1` - Script dừng services
+
+---
 
 ## 🔍 Kiểm Tra Đồng Bộ
 
@@ -108,6 +114,8 @@
    # Phải kết nối được với http://localhost:5000/api
    ```
 
+---
+
 ## 📝 Lưu Ý Quan Trọng
 
 1. **Thứ tự chạy services:**
@@ -126,6 +134,8 @@
    - API_BASE_URL phải trỏ đến API Gateway (port 5000)
    - Không trỏ trực tiếp đến các services
 
+---
+
 ## ✅ Kết Luận
 
 Tất cả các file đã được đồng bộ:
@@ -136,5 +146,11 @@ Tất cả các file đã được đồng bộ:
 - ✅ Frontend configuration
 - ✅ Scripts
 
-Hệ thống đã sẵn sàng để chạy và demo!
+**Hệ thống đã sẵn sàng để chạy và demo!**
 
+---
+
+## 🔗 Xem Thêm
+
+- [THONG_TIN_DONG_BO.md](./THONG_TIN_DONG_BO.md) - Thông tin đồng bộ đầy đủ
+- [README.md](./README.md) - Tổng quan dự án

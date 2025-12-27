@@ -49,6 +49,8 @@ mongodb+srv://datt19112001_db_user:1@mongodbdatnt.bc8xywz.mongodb.net/?retryWrit
 - **URL:** http://localhost:4200
 - **API Base URL:** http://localhost:5000/api (trỏ đến API Gateway)
 
+---
+
 ## 📁 Files Configuration
 
 ### ✅ launchSettings.json
@@ -64,6 +66,8 @@ mongodb+srv://datt19112001_db_user:1@mongodbdatnt.bc8xywz.mongodb.net/?retryWrit
 - Routes đã được cấu hình đúng ports
 - BaseUrl: http://localhost:5000
 
+---
+
 ## 📚 Documentation
 
 ### ✅ Đã Đồng Bộ:
@@ -74,10 +78,13 @@ mongodb+srv://datt19112001_db_user:1@mongodbdatnt.bc8xywz.mongodb.net/?retryWrit
 - KICH_BAN_DEMO.md
 - TONG_QUAN_DU_AN.md
 - TONG_KET_DU_AN.md
+- GIAI_THICH_KIEN_TRUC.md
 
 ### ✅ Frontend:
 - api.service.ts - API_BASE_URL đúng
 - home.component.ts - URLs hiển thị đúng
+
+---
 
 ## 🚀 Quick Start
 
@@ -101,6 +108,8 @@ npm start
 - Product Service: http://localhost:5002/swagger
 - Order Service: http://localhost:5003/swagger
 
+---
+
 ## ✅ Kết Luận
 
 **Tất cả đã được đồng bộ hoàn toàn!**
@@ -115,3 +124,9 @@ npm start
 
 **Hệ thống sẵn sàng để chạy và demo! 🎉**
 
+---
+
+## 🔗 Xem Thêm
+
+- [README.md](./README.md) - Tổng quan
+- [DONG_BO_HE_THONG.md](./DONG_BO_HE_THONG.md) - Checklist đồng bộ

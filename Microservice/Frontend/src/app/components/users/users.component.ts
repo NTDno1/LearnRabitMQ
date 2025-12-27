@@ -3,13 +3,14 @@ import { CommonModule } from '@angular/common';
 import { MatTableModule } from '@angular/material/table';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
-import { MatDialogModule, MatDialog } from '@angular/material/dialog';
+import { MatDialog } from '@angular/material/dialog';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { FormsModule } from '@angular/forms';
 import { ApiService, User, CreateUser } from '../../services/api.service';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatCardModule } from '@angular/material/card';
+import { UserDialogComponent } from './user-dialog.component';
 
 @Component({
   selector: 'app-users',
@@ -19,7 +20,6 @@ import { MatCardModule } from '@angular/material/card';
     MatTableModule,
     MatButtonModule,
     MatIconModule,
-    MatDialogModule,
     MatFormFieldModule,
     MatInputModule,
     FormsModule,
@@ -137,22 +137,65 @@ export class UsersComponent implements OnInit {
   }
 
   openCreateDialog() {
-    const user: CreateUser = {
-      username: '',
-      email: '',
-      password: '',
-      firstName: '',
-      lastName: '',
-      phoneNumber: ''
-    };
-    // Simplified - in real app, use MatDialog
-    if (confirm('Bạn có muốn tạo user mới? (Sử dụng Swagger để tạo user chi tiết)')) {
-      this.snackBar.open('Vui lòng sử dụng Swagger UI để tạo user mới', 'Đóng', { duration: 3000 });
-    }
+    const dialogRef = this.dialog.open(UserDialogComponent, {
+      width: '500px',
+      data: null
+    });
+
+    dialogRef.afterClosed().subscribe(result => {
+      if (result) {
+        this.apiService.createUser(result).subscribe({
+          next: () => {
+            this.snackBar.open('Tạo user thành công', 'Đóng', { duration: 2000 });
+            this.loadUsers();
+          },
+          error: (err) => {
+            this.snackBar.open('Lỗi khi tạo user: ' + (err.error?.message || 'Unknown error'), 'Đóng', { duration: 3000 });
+            console.error(err);
+          }
+        });
+      }
+    });
   }
 
   editUser(user: User) {
-    this.snackBar.open(`Chỉnh sửa user: ${user.username}`, 'Đóng', { duration: 2000 });
+    const userData: CreateUser = {
+      username: user.username,
+      email: user.email,
+      password: '', // Không cần password khi edit
+      firstName: user.firstName,
+      lastName: user.lastName,
+      phoneNumber: user.phoneNumber
+    };
+
+    const dialogRef = this.dialog.open(UserDialogComponent, {
+      width: '500px',
+      data: userData
+    });
+
+    dialogRef.afterClosed().subscribe(result => {
+      if (result) {
+        // Loại bỏ password nếu không có thay đổi
+        const updateData: Partial<User> = {
+          username: result.username,
+          email: result.email,
+          firstName: result.firstName,
+          lastName: result.lastName,
+          phoneNumber: result.phoneNumber
+        };
+        
+        this.apiService.updateUser(user.id, updateData).subscribe({
+          next: () => {
+            this.snackBar.open('Cập nhật user thành công', 'Đóng', { duration: 2000 });
+            this.loadUsers();
+          },
+          error: (err) => {
+            this.snackBar.open('Lỗi khi cập nhật user: ' + (err.error?.message || 'Unknown error'), 'Đóng', { duration: 3000 });
+            console.error(err);
+          }
+        });
+      }
+    });
   }
 
   deleteUser(id: number) {
