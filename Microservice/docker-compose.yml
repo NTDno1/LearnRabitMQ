@@ -88,7 +88,7 @@ services:
     networks:
       - microservice-network
 
-  # API Gateway
+  # API Gateway (Ocelot)
   api-gateway:
     build:
       context: .
@@ -99,6 +99,28 @@ services:
     environment:
       - ASPNETCORE_ENVIRONMENT=Development
       - ASPNETCORE_URLS=http://+:8080
+    depends_on:
+      - user-service
+      - product-service
+      - order-service
+    networks:
+      - microservice-network
+
+  # API Gateway RabbitMQ
+  api-gateway-rabbitmq:
+    build:
+      context: .
+      dockerfile: Microservice.ApiGateway.RabbitMQ/Dockerfile
+    container_name: microservice-api-gateway-rabbitmq
+    ports:
+      - "5010:8080"
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_URLS=http://+:8080
+      - RabbitMQ__HostName=47.130.33.106
+      - RabbitMQ__Port=5672
+      - RabbitMQ__UserName=guest
+      - RabbitMQ__Password=guest
     depends_on:
       - user-service
       - product-service
